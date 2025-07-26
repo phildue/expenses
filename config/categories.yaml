@@ -1,11 +1,134 @@
 Categories:
-  - lebensmittel
-  - miete
-  - internet
-  - energie
-  - media
-  - sonstiges
-  - einkommen
-  - dining
-  - transport
-  - anderes
+  - name: lebensmittel
+    keywords:
+      - supermarkt
+      - edeka
+      - rewe
+      - aldi
+      - lidl
+      - netto
+      - lebensmittel
+      - feneberg
+      - interspar
+      - penny
+      - hofer
+      - municoffee
+      - kaffee
+      - conad
+      - CHINA.MARKETDI
+  - name: miete
+    keywords:
+      - miete
+      - wohnung
+      - vermieter
+      - kaltmiete
+      - nebenkosten
+  - name: internet
+    keywords:
+      - internet
+      - telekom
+      - vodafone
+      - o2
+      - wlan
+      - dsl
+  - name: energie
+    keywords:
+      - strom
+      - gas
+      - energie
+      - stadtwerke
+      - heizung
+  - name: media
+    keywords:
+      - netflix
+      - spotify
+      - prime
+      - zeitung
+      - magazin
+      - streaming
+  - name: sonstiges
+    keywords:
+      - sonstiges
+      - divers
+      - unbekannt
+  - name: einkommen
+    keywords:
+      - gehalt
+      - lohn
+      - einkommen
+      - überweisung
+      - gehälter
+  - name: restaurant
+    keywords:
+      - restaurant
+      - essen
+      - café
+      - bar
+      - imbiss
+      - pizza
+      - burger
+      - fidelis
+      - mcdonalds
+      - kfc
+      - sushi
+      - lindi
+      - kiosk
+      - DANKEBAECKEREISCHWARZ/LINDAU
+      - SpacciaNapoli
+      - strandcafe
+      - biero
+      - Com.Viet
+      - Ristorante
+      - Don.Ya
+      - ins.Blaue
+      - ferdinand.kinz
+  - name: shopping
+    keywords:
+      - shopping
+      - kleidung
+      - h&m
+      - zalando
+      - amazon
+      - einkauf
+      - euroshop
+      - ikea
+      - mueller
+      - dm
+      - rossmann
+      - aliexpress
+      - ebay
+      - zalando lounge
+      - phamily
+      - taverna
+      - DEHNER.GARDEN
+  - name: reisen
+    keywords:
+      - reise
+      - urlaub
+      - flug
+      - hotel
+      - booking
+      - airbnb
+      - campeggio
+  - name: transport
+    keywords:
+      - bus
+      - bahn
+      - zug
+      - taxi
+      - uber
+      - fahrkarte
+      - auto
+      - tanken
+      - easypark
+      - stadtverkehr
+      - DB Vertrieb
+      - BOSCH.SERVICE
+      - OMV
+      - AurumCars
+      - Strassenbah
+  - name: party
+    keywords:
+      - feinkostschmiede
+      - hochzeit
+      - köhler

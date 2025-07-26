@@ -3,8 +3,9 @@ import os
 import yaml
 import csv
 import pandas as pd
-import matplotlib.pyplot as plt
-
+import argparse
+import glob
+from format import convert_betrag_column
 class Classifier:
     def __init__(self, categories):
         self.categories = categories
@@ -14,31 +15,36 @@ class Classifier:
         )
 
     def classify(self, text):
-        prompt = (
-            f"Given the following categories: {list(self.categories)}, "
-            f"and the text: '{text}', which category does the text belong to? "
-            "Respond with only the category name."
-        )
+        text_lower = text.lower()
+        max_overlap = 0
+        best_category = None
 
-        response = self.client.chat.completions.create(
-            model="gpt-3.5-turbo",
-            messages=[{"role": "user", "content": prompt}],
-            max_tokens=10,
-            n=1,
-            stop=None,
-            temperature=0
-        )
+        for category, info in self.categories.items():
+            keywords = info.get("keywords", [])
+            overlap = sum(1 for kw in keywords if kw.lower() in text_lower)
+            if overlap > max_overlap:
+                max_overlap = overlap
+                best_category = category
 
-        category = response.choices[0].message.content.strip().lower()
-        if category in self.categories:
-            return category
+        if best_category is not None and max_overlap > 0:
+            return best_category
         else:
-            raise ValueError(f"Category '{category}' not found in predefined categories: {list(self.categories)}")
+            print(f"No category found with keyword overlap for text: '{text}'")
+            return "sonstiges"
     
     def classify_file(self, input_file, output_file):
-        df = pd.read_csv(input_file, delimiter='\t', encoding='utf-8')
+        try:
+            df = pd.read_csv(input_file, delimiter=';', encoding='utf-8')
+        except Exception as e:
+            df = pd.read_csv(input_file, delimiter=';', encoding='utf-8', skiprows=4)
+        # Drop rows with any missing values in the selected columns
+        #df = df.dropna()
+        #df = df[~df['Zahlungsempfänger*in'].isin(['Julia Sperger', 'Philipp Dürnay'])]
         categories = []
         for _, row in df.iterrows():
+            if any(column not in row for column in ['Zahlungsempfänger*in', 'Verwendungszweck']):
+                categories.append(None)
+                continue
             line_text = " ".join(str(item) for item in row[["Zahlungsempfänger*in", 'Verwendungszweck']])
             try:
                 category = self.classify(line_text)
@@ -47,12 +53,30 @@ class Classifier:
                 print(e)
                 categories.append(None)
         df['Kategorie'] = categories
-        df.to_csv(output_file, index=False, encoding='utf-8')
-        
+        df.to_csv(output_file, index=False, encoding='utf-8', sep=';')
+
+def main():
+    parser = argparse.ArgumentParser(description="Classify transactions and plot results.")
+    parser.add_argument("input_folder", help="Path to input folder containing CSV files")
+    parser.add_argument("output_path", help="Path to output directory", default=".")
+    args = parser.parse_args()
+    
+    os.makedirs(args.output_path, exist_ok=True)
+    with open("config/categories.yaml", "r") as f:
+        categories_yaml = yaml.safe_load(f)
+    categories_list = categories_yaml.get("Categories", [])
+    # Convert list of dicts to dict with category name as key
+    categories = {cat["name"]: {"keywords": cat["keywords"]} for cat in categories_list}
+    classifier = Classifier(categories=categories)
+
+    csv_files = glob.glob(os.path.join(args.input_folder, "*.csv"))
+    for csv_file in csv_files:
+        base_name = os.path.splitext(os.path.basename(csv_file))[0]
+        classified_file = os.path.join(args.output_path, f"{base_name}_classified.csv")
+        print(f"Classifying {csv_file} and saving to {classified_file}")
+        classifier.classify_file(csv_file, classified_file)
+
+
+
 if __name__ == "__main__":
-    # Example usage
-    with open("categories.yaml", "r") as f:
-        categories = yaml.safe_load(f)
-    categories = categories.get("Categories", {})
-    classifier = Classifier(categories)
-    classifier.classify_file("test.csv", "test_output.csv")
+    main()
