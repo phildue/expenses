@@ -11,16 +11,6 @@ from view import View
 from model import Model
 from controller import Controller
 
-def create_app(csv_dir):
-
-    model = Model(csv_dir)
-
-    app = dash.Dash(__name__)
-    view = View(model)
-
-    app.layout = view.get_layout()
-    controller = Controller(app, model, view)
-    return app
 
 def main():
     parser = argparse.ArgumentParser(description="Dash app for visualizing classified expense CSVs.")
@@ -42,14 +32,24 @@ def main():
         default=8050,
         help="Port to run the Dash app"
     )
+
+    parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+
     args = parser.parse_args()
 
     if not os.path.isdir(args.csv_dir):
         print(f"CSV directory '{args.csv_dir}' does not exist.", file=sys.stderr)
         sys.exit(1)
 
-    app = create_app(args.csv_dir)
-    app.run(debug=True, host=args.host, port=args.port)
+    model = Model(args.csv_dir)
+
+    app = dash.Dash(__name__)
+    view = View(model)
+
+    app.layout = view.get_layout()
+    controller = Controller(app, model, view)
+
+    app.run(debug=args.debug, host=args.host, port=args.port)
 
 if __name__ == "__main__":
     main()
