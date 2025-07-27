@@ -22,10 +22,8 @@ class View:
         ])
     
     def get_tab_layout(self, selected_csv):
-        df_expenses = self.model.expenses(selected_csv)
-        df_expenses['Betrag (€)'] = df_expenses['Betrag (€)'].abs()  # Ensure amounts are positive for pie chart
-        if df_expenses.empty:
-            return html.Div("No expenses found for this CSV file.")
+        df_expenses = self.model.expenses(selected_csv).copy(deep=False)
+        df_expenses['Betrag (€)'] = df_expenses['Betrag (€)'].abs()
         date_span = self.model.get_date_span(df_expenses)
         pie_fig = px.pie(
             df_expenses,

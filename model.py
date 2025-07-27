@@ -9,20 +9,46 @@ class Model:
         csv_files = glob.glob(os.path.join(csv_dir, "*.csv"))
         csv_files = sorted(csv_files,
                             key=lambda f: pd.to_datetime(
-                                self.load_data(f)['Buchungsdatum'], format='%d.%m.%y', errors='coerce'
+                                self._load_data(f)['Buchungsdatum'], format='%d.%m.%y', errors='coerce'
                             ).min()
                             )
         self.csv_files = csv_files
-        self.data = {csv_file: self.load_data(csv_file) for csv_file in csv_files}
+        self.data = {csv_file: self._load_data(csv_file) for csv_file in csv_files}
         
         
-    def load_data(self, csv_file):
+    def _load_data(self, csv_file):
         try:
             df = pd.read_csv(csv_file, delimiter=';', encoding='utf-8')
         except Exception as e:
             df = pd.read_csv(csv_file, delimiter=';', encoding='utf-8', skiprows=4)
         df = self.convert_betrag_column(df)
-        df = df[df['Verwendungszweck']!='Ausgleich']
+        df = self._preprocess_income(df)
+        return df
+    
+    def _preprocess_income(self, df):
+        """Preprocess income data."""
+        mask = df["Verwendungszweck"].str.contains("Ausgleich", case=True, na=False)
+
+        matching_rows = df[mask]
+        if matching_rows.empty:
+            return df
+        total_sum = matching_rows["Betrag (€)"].sum()
+        summary_row = { "Buchungsdatum":[matching_rows["Buchungsdatum"].iloc[0]],
+                       "Wertstellung": [matching_rows["Wertstellung"].iloc[0]],
+                       "Status": [matching_rows["Status"].iloc[0]],
+                       "Zahlungspflichtige*r":[""],
+                       "Zahlungsempfänger*in":[""],
+                       "Verwendungszweck": ["Ausgleich Verrechnet"],
+                       "Umsatztyp":["Zusammenfassung"],
+                       "IBAN":[""],
+                       "Betrag (€)":[total_sum],
+                       "Gläubiger-ID":[""],
+                       "Mandatsreferenz":[""],
+                       "Kundenreferenz":[""],
+                       "Kategorie":["sonstiges"]}
+        summary_row = pd.DataFrame(summary_row)
+        df = df[~mask]
+        df = pd.concat([df, summary_row], ignore_index=True)
         return df
 
     def save(self):
