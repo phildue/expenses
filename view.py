@@ -7,7 +7,7 @@ class View:
     def __init__(self, model):
         self.model = model
 
-    def get_layout(self):
+    def main(self):
         csv_files = self.model.csv_files
         tabs = [dcc.Tab(label=" ".join(os.path.basename(csv_file).split("_")[:2]),value=csv_file) for csv_file in csv_files]
 
@@ -21,7 +21,7 @@ class View:
             html.Div(id='tab-content')
         ])
     
-    def get_tab_layout(self, selected_csv):
+    def tab(self, selected_csv):
         df_expenses = self.model.expenses(selected_csv).copy(deep=False)
         df_expenses['Betrag (€)'] = df_expenses['Betrag (€)'].abs()
         date_span = self.model.get_date_span(df_expenses)
@@ -34,7 +34,8 @@ class View:
             custom_data=['Betrag (€)']
         ).update_traces(
             textinfo='label+value',
-            hovertemplate='%{label}: %{value:.2f} €<extra></extra>'
+            hovertemplate='%{label}: %{value:.2f} €<extra></extra>',
+            
         )
         df = self.model.df(selected_csv).copy()
         df['Type'] = df['Betrag (€)'].apply(lambda x: 'Income' if x >= 0 else 'Expense')
@@ -43,8 +44,12 @@ class View:
 
         bar_fig = px.bar(agg_type, x='Type', y='Betrag (€)',title='Income vs Expense', color='Type',
                          labels={'Betrag (€)': 'Total Amount (€)', 'Type': 'Income/Expense'},
-                         text='Betrag (€)').update_traces(texttemplate='%{text:.2f} €', textposition='outside')
-        df_details = df[['Zahlungsempfänger*in', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum']]
+                         text='Betrag (€)')
+        bar_fig = bar_fig.update_traces(texttemplate='%{text:.2f} €', textposition='outside', cliponaxis=False)
+        bar_fig = bar_fig.update_traces(
+            hovertemplate='Type: %{x}<br>Total: %{y:.2f} €<extra></extra>'
+        )
+        df_details = df[['Zahlungsempfänger*in', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum', 'Kategorie']]
         return html.Div([
             html.H3(f"{date_span}", style={"color": "#444"}),
             html.Div([
@@ -60,3 +65,21 @@ class View:
                 style_table={'overflowX': 'auto'},
             )
         ])
+        
+    def detailed_expenses_in_category(self, selected_csv, category):
+        df = self.model.expense_in_category(selected_csv, category)
+        df = df[['Zahlungsempfänger*in', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum', 'Kategorie']]
+        df = df.sort_values(by='Betrag (€)')
+        return f"Details for category: {category}", df.to_dict('records')
+    
+    def detailed_expenses(self, selected_csv):
+        df = self.model.expenses(selected_csv)
+        df = df[['Zahlungsempfänger*in', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum', 'Kategorie']]
+        df = df.sort_values(by='Betrag (€)')
+        return f"Expenses", df.to_dict('records')
+    
+    def detailed_income(self, selected_csv):
+        df = self.model.income(selected_csv)
+        df = df[['Zahlungspflichtige*r', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum', 'Kategorie']]
+        df = df.sort_values(by='Betrag (€)')
+        return f"Income", df.to_dict('records')

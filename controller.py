@@ -14,7 +14,7 @@ class Controller:
         Output('tab-content', 'children'),
         Input('csv-tabs', 'value'))
         def render_tab(selected_csv):
-            return self.view.get_tab_layout(selected_csv=selected_csv)
+            return self.view.tab(selected_csv=selected_csv)
         
         @self.app.callback(
             Output('details-title', 'children'),
@@ -27,23 +27,14 @@ class Controller:
             triggered = ctx.triggered[0]['prop_id'].split('.')[0] if ctx.triggered else None
 
             if triggered == 'category-pie-2' and pie_click and 'label' in pie_click['points'][0]:
-                category = pie_click['points'][0]['label']
-                filtered = self.model.expense_in_category(selected_csv, category)
-                filtered = filtered[['Zahlungsempfänger*in', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum']]
-                return f"Details for category: {category}", filtered.to_dict('records')
-        
+                return self.view.detailed_expenses_in_category(selected_csv, category=pie_click['points'][0]['label'])
+                
             if triggered == 'bar-fig' and bar_click and 'label' in bar_click['points'][0]:
                 group = bar_click['points'][0]['label']
                 if group == 'Expense':
-                    df = self.model.expenses(selected_csv)
-                    df = df[['Zahlungsempfänger*in', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum']]
-                    df = df.sort_values(by='Betrag (€)')
-                    return f"Expenses", df.to_dict('records')
+                    return self.view.detailed_expenses(selected_csv)
                 else:
-                    df = self.model.income(selected_csv)
-                    df = df[['Zahlungspflichtige*r', 'Verwendungszweck', 'Betrag (€)', 'Buchungsdatum']]
-                    df = df.sort_values(by='Betrag (€)', ascending=False)
-                    return f"Income", df.to_dict('records')
+                    return self.view.detailed_income(selected_csv)
 
             return "Click a category to see details", []
 

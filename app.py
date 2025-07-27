@@ -46,7 +46,7 @@ def main():
     app = dash.Dash(__name__)
     view = View(model)
 
-    app.layout = view.get_layout()
+    app.layout = view.main()
     controller = Controller(app, model, view)
 
     app.run(debug=args.debug, host=args.host, port=args.port)

@@ -14,42 +14,6 @@ class Model:
                             )
         self.csv_files = csv_files
         self.data = {csv_file: self._load_data(csv_file) for csv_file in csv_files}
-        
-        
-    def _load_data(self, csv_file):
-        try:
-            df = pd.read_csv(csv_file, delimiter=';', encoding='utf-8')
-        except Exception as e:
-            df = pd.read_csv(csv_file, delimiter=';', encoding='utf-8', skiprows=4)
-        df = self.convert_betrag_column(df)
-        df = self._preprocess_income(df)
-        return df
-    
-    def _preprocess_income(self, df):
-        """Preprocess income data."""
-        mask = df["Verwendungszweck"].str.contains("Ausgleich", case=True, na=False)
-
-        matching_rows = df[mask]
-        if matching_rows.empty:
-            return df
-        total_sum = matching_rows["Betrag (€)"].sum()
-        summary_row = { "Buchungsdatum":[matching_rows["Buchungsdatum"].iloc[0]],
-                       "Wertstellung": [matching_rows["Wertstellung"].iloc[0]],
-                       "Status": [matching_rows["Status"].iloc[0]],
-                       "Zahlungspflichtige*r":[""],
-                       "Zahlungsempfänger*in":[""],
-                       "Verwendungszweck": ["Ausgleich Verrechnet"],
-                       "Umsatztyp":["Zusammenfassung"],
-                       "IBAN":[""],
-                       "Betrag (€)":[total_sum],
-                       "Gläubiger-ID":[""],
-                       "Mandatsreferenz":[""],
-                       "Kundenreferenz":[""],
-                       "Kategorie":["sonstiges"]}
-        summary_row = pd.DataFrame(summary_row)
-        df = df[~mask]
-        df = pd.concat([df, summary_row], ignore_index=True)
-        return df
 
     def save(self):
         for csv_file, df in self.data.items():
@@ -83,7 +47,7 @@ class Model:
             return f"{min_date.strftime('%d.%m.%Y')} bis {max_date.strftime('%d.%m.%Y')}"
         return "Zeitraum unbekannt"
     
-    def convert_betrag_column(self,df):
+    def _convert_betrag_column(self,df):
         """Convert 'Betrag (€)' column from German to standard decimal notation."""
         if 'Betrag (€)' in df.columns:
             df['Betrag (€)'] = (
@@ -94,24 +58,37 @@ class Model:
             df['Betrag (€)'] = pd.to_numeric(df['Betrag (€)'], errors='coerce')
         return df
 
+    def _load_data(self, csv_file):
+        try:
+            df = pd.read_csv(csv_file, delimiter=';', encoding='utf-8')
+        except Exception as e:
+            df = pd.read_csv(csv_file, delimiter=';', encoding='utf-8', skiprows=4)
+        df = self._convert_betrag_column(df)
+        df = self._preprocess_income(df)
+        return df
+    
+    def _preprocess_income(self, df):
+        """Preprocess income data."""
+        mask = df["Verwendungszweck"].str.contains("Ausgleich", case=True, na=False)
 
-def read_csv(input_file):
-    """Read CSV with ; separator and all columns as string."""
-    return pd.read_csv(input_file, sep=';', dtype=str)
-
-def write_csv(df, output_file):
-    """Write DataFrame to CSV with , separator and utf-8 encoding."""
-    df.to_csv(output_file, sep=',', index=False, encoding='utf-8')
-
-def main():
-    parser = argparse.ArgumentParser(description="Convert German CSV to standard format.")
-    parser.add_argument("input_file", help="Input CSV file")
-    parser.add_argument("output_file", help="Output CSV file")
-    args = parser.parse_args()
-
-    df = read_csv(args.input_file)
-    df = convert_betrag_column(df)
-    write_csv(df, args.output_file)
-
-if __name__ == "__main__":
-    main()
+        matching_rows = df[mask]
+        if matching_rows.empty:
+            return df
+        total_sum = matching_rows["Betrag (€)"].sum()
+        summary_row = { "Buchungsdatum":[matching_rows["Buchungsdatum"].iloc[0]],
+                       "Wertstellung": [matching_rows["Wertstellung"].iloc[0]],
+                       "Status": [matching_rows["Status"].iloc[0]],
+                       "Zahlungspflichtige*r":[""],
+                       "Zahlungsempfänger*in":[""],
+                       "Verwendungszweck": ["Ausgleich Verrechnet"],
+                       "Umsatztyp":["Zusammenfassung"],
+                       "IBAN":[""],
+                       "Betrag (€)":[total_sum],
+                       "Gläubiger-ID":[""],
+                       "Mandatsreferenz":[""],
+                       "Kundenreferenz":[""],
+                       "Kategorie":["sonstiges"]}
+        summary_row = pd.DataFrame(summary_row)
+        df = df[~mask]
+        df = pd.concat([df, summary_row], ignore_index=True)
+        return df
