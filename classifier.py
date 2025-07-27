@@ -5,7 +5,6 @@ import csv
 import pandas as pd
 import argparse
 import glob
-from format import convert_betrag_column
 class Classifier:
     def __init__(self, categories):
         self.categories = categories
@@ -54,6 +53,18 @@ class Classifier:
                 categories.append(None)
         df['Kategorie'] = categories
         df.to_csv(output_file, index=False, encoding='utf-8', sep=';')
+        
+    def convert_betrag_column(self,df):
+        """Convert 'Betrag (€)' column from German to standard decimal notation."""
+        if 'Betrag (€)' in df.columns:
+            df['Betrag (€)'] = (
+                df['Betrag (€)']
+                .str.replace('.', '', regex=False)   # Remove thousand separator
+                .str.replace(',', '.', regex=False)  # Replace decimal comma with dot
+            )
+            df['Betrag (€)'] = pd.to_numeric(df['Betrag (€)'], errors='coerce')
+        return df
+
 
 def main():
     parser = argparse.ArgumentParser(description="Classify transactions and plot results.")
