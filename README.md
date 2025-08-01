@@ -2,6 +2,44 @@
 
 A Dash-based web application for visualizing and managing classified expense CSV files.
 
+## Installation
+
+### Development Installation
+
+Clone the repository and install in development mode:
+
+```bash
+git clone <repository-url>
+cd abrechnung
+pip install -e .
+```
+
+### Production Installation
+
+```bash
+pip install expenses
+```
+
+## Package Structure
+
+The project is organized as a Python package:
+
+```
+expenses/
+├── __init__.py           # Package initialization
+├── classifier.py         # Transaction classification logic
+├── plot.py              # Plotting utilities
+├── controller/          # Application controllers
+│   ├── __init__.py
+│   └── controller.py
+├── model/              # Data models
+│   ├── __init__.py
+│   └── model.py
+└── view/               # UI views
+    ├── __init__.py
+    └── view.py
+```
+
 ## Features
 
 - **Interactive Dashboard**: View expense data with pie charts and bar graphs

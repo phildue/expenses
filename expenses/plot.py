@@ -3,6 +3,7 @@ import matplotlib
 matplotlib.use('Agg')  # Use a non-GUI backend for file output
 import matplotlib.pyplot as plt
 
+
 class Plot:
     def __init__(self, csv_file):
         self.csv_file = csv_file

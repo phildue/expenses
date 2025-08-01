@@ -1,2 +1,11 @@
 __pycache__
 data/
+*.egg-info/
+*.pyc
+*.pyo
+*.pyd
+*.pkl
+*.db
+*.sqlite3
+*.log
+*.csv

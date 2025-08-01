@@ -6,8 +6,9 @@ import io
 import pandas as pd
 import os
 
+
 class Controller:
-    def __init__(self,app, model, view):
+    def __init__(self, app, model, view):
         self.app = app
         self.model = model
         self.view = view
@@ -87,4 +88,3 @@ class Controller:
                     html.P(f'Error processing file: {str(e)}',
                            style={'color': 'red'})
                 ]), existing_tabs, existing_tabs[-1]['props']['value'] if existing_tabs else None
-

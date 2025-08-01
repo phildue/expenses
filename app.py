@@ -6,9 +6,9 @@ import pandas as pd
 import dash
 from dash import dcc, html, Input, Output, dash_table
 
-from view import View
-from model import Model
-from controller import Controller
+from expenses.view.view import View
+from expenses.model.model import Model
+from expenses.controller.controller import Controller
 
 
 def main():

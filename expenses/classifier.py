@@ -5,6 +5,8 @@ import csv
 import pandas as pd
 import argparse
 import glob
+
+
 class Classifier:
     def __init__(self, categories):
         self.categories = categories
@@ -54,7 +56,7 @@ class Classifier:
         df['Kategorie'] = categories
         df.to_csv(output_file, index=False, encoding='utf-8', sep=';')
         
-    def convert_betrag_column(self,df):
+    def convert_betrag_column(self, df):
         """Convert 'Betrag (€)' column from German to standard decimal notation."""
         if 'Betrag (€)' in df.columns:
             df['Betrag (€)'] = (
@@ -86,7 +88,6 @@ def main():
         classified_file = os.path.join(args.output_path, f"{base_name}_classified.csv")
         print(f"Classifying {csv_file} and saving to {classified_file}")
         classifier.classify_file(csv_file, classified_file)
-
 
 
 if __name__ == "__main__":

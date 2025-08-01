@@ -3,6 +3,8 @@ from dash import dcc, html, Input, Output, dash_table
 import pandas as pd
 import plotly.express as px
 import os
+
+
 class View:
     def __init__(self, model):
         self.model = model

@@ -3,7 +3,7 @@ import argparse
 import glob
 import os
 import yaml
-from classifier import Classifier
+from ..classifier import Classifier
 from datetime import datetime
 
 
