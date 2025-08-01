@@ -13,6 +13,27 @@ class View:
 
         return html.Div([
             html.H1("Expense Overview"),
+            html.Div([
+                dcc.Upload(
+                    id='upload-csv',
+                    children=html.Div([
+                        'Drag and Drop or ',
+                        html.A('Select a CSV File')
+                    ]),
+                    style={
+                        'width': '100%',
+                        'height': '60px',
+                        'lineHeight': '60px',
+                        'borderWidth': '1px',
+                        'borderStyle': 'dashed',
+                        'borderRadius': '5px',
+                        'textAlign': 'center',
+                        'margin': '10px 0'
+                    },
+                    multiple=False
+                ),
+                html.Div(id='upload-output'),
+            ]),
             dcc.Tabs(
                 id='csv-tabs',
                 value=list(csv_files)[-1] if csv_files else None,

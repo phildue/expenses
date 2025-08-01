@@ -1,6 +1,10 @@
 import dash
-from dash import dcc, html, Input, Output, dash_table
+from dash import dcc, html, Input, Output, dash_table, State
 from dash import callback_context
+import base64
+import io
+import pandas as pd
+import os
 
 class Controller:
     def __init__(self,app, model, view):
@@ -38,4 +42,49 @@ class Controller:
 
             return "Click a category to see details", []
 
-        
+        @self.app.callback(
+            Output('upload-output', 'children'),
+            Output('csv-tabs', 'children'),
+            Output('csv-tabs', 'value'),
+            Input('upload-csv', 'contents'),
+            State('upload-csv', 'filename'),
+            State('csv-tabs', 'children'))
+        def handle_upload(contents, filename, existing_tabs):
+            if contents is None:
+                return None, existing_tabs, existing_tabs[-1]['props']['value'] if existing_tabs else None
+
+            try:
+                # Decode the uploaded file
+                content_type, content_string = contents.split(',')
+                decoded = base64.b64decode(content_string)
+                
+                # Read the CSV file using the same simple logic as classifier.py
+                csv_content = decoded.decode('utf-8')
+                try:
+                    df = pd.read_csv(io.StringIO(csv_content), delimiter=';', encoding='utf-8')
+                except Exception:
+                    df = pd.read_csv(io.StringIO(csv_content), delimiter=';', encoding='utf-8', skiprows=4)
+                
+                # Use the model to classify and save the file
+                new_file_path = self.model.classify_and_save_file(df)
+                output_filename = os.path.basename(new_file_path)
+                
+                # Update tabs
+                new_tabs = [
+                    dcc.Tab(
+                        label=" ".join(os.path.basename(csv_file).split("_")[:2]),
+                        value=csv_file
+                    ) for csv_file in self.model.csv_files
+                ]
+                
+                return html.Div([
+                    html.P(f'Successfully processed and saved as {output_filename}', 
+                           style={'color': 'green'})
+                ]), new_tabs, new_file_path
+                
+            except Exception as e:
+                return html.Div([
+                    html.P(f'Error processing file: {str(e)}',
+                           style={'color': 'red'})
+                ]), existing_tabs, existing_tabs[-1]['props']['value'] if existing_tabs else None
+

@@ -1,4 +1,3 @@
-
 import os
 import argparse
 import sys
@@ -17,7 +16,7 @@ def main():
     parser.add_argument(
         "--csv-dir",
         type=str,
-        default="test_output",
+        default="data",
         help="Directory containing classified CSV files"
     )
     parser.add_argument(
@@ -37,8 +36,11 @@ def main():
 
     args = parser.parse_args()
 
-    if not os.path.isdir(args.csv_dir):
-        print(f"CSV directory '{args.csv_dir}' does not exist.", file=sys.stderr)
+    # Ensure the CSV directory exists
+    if not os.path.exists(args.csv_dir):
+        os.makedirs(args.csv_dir)
+    elif not os.path.isdir(args.csv_dir):
+        print(f"CSV directory '{args.csv_dir}' exists but is not a directory.", file=sys.stderr)
         sys.exit(1)
 
     model = Model(args.csv_dir)
